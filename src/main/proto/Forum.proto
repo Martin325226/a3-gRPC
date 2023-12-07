@@ -1,0 +1,143 @@
+syntax = "proto3";
+
+package forum;
+
+message User {
+  string user_id = 1;
+}
+
+message Post {
+  string title = 1;
+  string text = 2;
+  oneof media {
+    string video_url = 3;
+    string image_url = 4;
+  }
+  string author = 5;
+  int32 score = 6;
+  enum State {
+    NORMAL = 0;
+    LOCKED = 1;
+    HIDDEN = 2;
+  }
+  State state = 7;
+  string publication_date = 8;
+  string subreddit = 9;
+}
+
+message Comment {
+  string author = 1;
+  string text = 2;
+  int32 score = 3;
+  enum Status {
+    NORMAL = 0;
+    HIDDEN = 1;
+  }
+  Status status = 4;
+  string publication_date = 5;
+  oneof parent {
+    string post_id = 6;
+    string comment_id = 7;
+  }
+}
+
+message Subreddit {
+  string name = 1;
+  enum Privacy {
+    PUBLIC = 0;
+    PRIVATE = 1;
+    HIDDEN = 2;
+  }
+  Privacy privacy = 2;
+  repeated string tags = 3;
+}
+
+service ForumService {
+  rpc CreatePost(CreatePostRequest) returns (PostResponse);
+  rpc VotePost(VotePostRequest) returns (VoteResponse);
+  rpc GetPost(GetPostRequest) returns (PostResponse);
+  rpc CreateComment(CreateCommentRequest) returns (CommentResponse);
+  rpc VoteComment(VoteCommentRequest) returns (VoteResponse);
+  rpc GetTopComments(GetTopCommentsRequest) returns (TopCommentsResponse);
+  rpc ExpandCommentBranch(ExpandCommentBranchRequest) returns (CommentBranchResponse);
+  rpc MonitorUpdates(MonitorUpdatesRequest) returns (stream UpdateResponse);
+}
+
+message CreatePostRequest {
+  string title = 1;
+  string text = 2;
+  string author = 3;
+}
+
+message PostResponse {
+  Post post = 1;
+}
+
+message VotePostRequest {
+  string post_id = 1;
+  bool upvote = 2;
+}
+
+message VoteResponse {
+  int32 new_score = 1;
+}
+
+// Define GetPostRequest
+message GetPostRequest {
+  string post_id = 1;
+}
+
+// Define CreateCommentRequest
+message CreateCommentRequest {
+  string post_id = 1;
+  string author = 2;
+  string text = 3;
+}
+
+// Define CommentResponse
+message CommentResponse {
+  Comment comment = 1;
+}
+
+// Define VoteCommentRequest
+message VoteCommentRequest {
+  string comment_id = 1;
+  bool upvote = 2;
+}
+
+// Define GetTopCommentsRequest
+message GetTopCommentsRequest {
+  string post_id = 1;
+  int32 n = 2;
+}
+
+// Define TopCommentsResponse
+message TopCommentsResponse {
+  repeated Comment comments = 1;
+}
+
+// Define ExpandCommentBranchRequest
+message ExpandCommentBranchRequest {
+  string comment_id = 1;
+  int32 n = 2;
+}
+
+// Define CommentBranchResponse
+message CommentBranchResponse {
+  repeated Comment comments = 1;
+  // Consider including sub-comments or other relevant information
+}
+
+// Define MonitorUpdatesRequest
+message MonitorUpdatesRequest {
+  string post_id = 1;
+  repeated string comment_ids = 2;
+}
+
+// Define UpdateResponse
+message UpdateResponse {
+  oneof update {
+    Post post = 1;
+    Comment comment = 2;
+  }
+}
